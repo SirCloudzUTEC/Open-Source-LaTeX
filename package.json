@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "setup": "bash instalar.sh"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.20.3",
