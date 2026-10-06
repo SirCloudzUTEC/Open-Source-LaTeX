@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LocalTeX</title>
+    <link rel="stylesheet" href="/src/styles.css" />
+  </head>
+  <body>
+    <!-- Pantalla de inicio -->
+    <div id="welcome" class="welcome">
+      <div class="welcome-card">
+        <div class="brand-big"><span class="logo">T<sub>E</sub>X</span> LocalTeX</div>
+        <p class="muted">Editor LaTeX local. Tus archivos, tu TeX Live, sin internet.</p>
+        <div class="welcome-actions">
+          <button class="btn primary" id="w-open"></button>
+          <button class="btn" id="w-new"></button>
+        </div>
+        <div id="tool-warning" class="tool-warning" hidden></div>
+        <h3 class="section-title">Recientes</h3>
+        <ul id="recent-list" class="recent-list"></ul>
+      </div>
+    </div>
+
+    <!-- Aplicación -->
+    <div id="app" class="app" hidden>
+      <header class="toolbar">
+        <div class="tb-group">
+          <button class="icon-btn" id="btn-home" title="Inicio"></button>
+          <span id="project-name" class="project-name"></span>
+        </div>
+
+        <div class="tb-group tb-center">
+          <label class="field" title="Archivo principal que se compila">
+            <span>Principal</span>
+            <select id="main-select"></select>
+          </label>
+          <label class="field" title="Motor de compilación">
+            <span>Motor</span>
+            <select id="engine-select">
+              <option value="pdflatex">pdfLaTeX</option>
+              <option value="xelatex">XeLaTeX</option>
+              <option value="lualatex">LuaLaTeX</option>
+            </select>
+          </label>
+          <div class="segmented" id="mode-toggle" role="radiogroup" title="Modo de renderizado">
+            <button data-mode="live" role="radio"></button>
+            <button data-mode="manual" role="radio"></button>
+          </div>
+          <div class="compile-group">
+            <button class="btn primary" id="btn-compile" title="Compilar (Ctrl+Enter)"></button>
+            <button class="btn primary caret" id="btn-compile-menu" title="Más opciones"></button>
+          </div>
+          <span id="status" class="status"></span>
+        </div>
+
+        <div class="tb-group">
+          <button class="icon-btn" id="btn-logs" title="Errores y log"></button>
+          <button class="icon-btn" id="btn-words" title="Contar palabras"></button>
+          <button class="icon-btn" id="btn-export" title="Exportar PDF"></button>
+          <button class="icon-btn" id="btn-settings" title="Ajustes"></button>
+        </div>
+      </header>
+
+      <main class="workspace" id="workspace">
+        <aside class="sidebar" id="sidebar">
+          <div class="panel-head">
+            <span>Archivos</span>
+            <div class="panel-actions">
+              <button class="icon-btn sm" id="btn-new-file" title="Nuevo archivo"></button>
+              <button class="icon-btn sm" id="btn-new-folder" title="Nueva carpeta"></button>
+              <button class="icon-btn sm" id="btn-upload" title="Importar archivos"></button>
+              <button class="icon-btn sm" id="btn-refresh" title="Recargar árbol"></button>
+            </div>
+          </div>
+          <div id="tree" class="tree" tabindex="0"></div>
+          <div class="sidebar-split" id="outline-resizer"></div>
+          <div class="panel-head"><span>Esquema</span></div>
+          <div id="outline" class="outline"></div>
+        </aside>
+        <div class="resizer" id="resizer-left"></div>
+
+        <section class="editor-pane">
+          <div class="tabs" id="tabs"></div>
+          <div class="editor-host">
+            <div id="editor"></div>
+            <div id="preview" class="preview" hidden></div>
+          </div>
+        </section>
+        <div class="resizer" id="resizer-right"></div>
+
+        <section class="pdf-pane" id="pdf-pane">
+          <div class="pdf-toolbar">
+            <button class="icon-btn sm" id="btn-sync" title="Ir a la posición del cursor en el PDF (Ctrl+J)"></button>
+            <span id="page-info" class="page-info">–</span>
+            <div class="spacer"></div>
+            <button class="icon-btn sm" id="btn-zoom-out" title="Alejar"></button>
+            <span id="zoom-info" class="zoom-info">100%</span>
+            <button class="icon-btn sm" id="btn-zoom-in" title="Acercar"></button>
+            <button class="icon-btn sm" id="btn-fit-width" title="Ajustar al ancho"></button>
+            <button class="icon-btn sm" id="btn-fit-page" title="Página completa"></button>
+          </div>
+          <div class="pdf-stage">
+            <div id="pdf" class="pdf-scroll"></div>
+            <div id="pdf-empty" class="pdf-empty">
+              <p>Aún no hay PDF.</p>
+              <p class="muted">Pulsa <kbd>Ctrl</kbd>+<kbd>Enter</kbd> para compilar.</p>
+            </div>
+            <div id="logs" class="logs" hidden></div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div id="menu" class="menu" hidden></div>
+    <div id="modal-root"></div>
+    <div id="toast-root" class="toast-root"></div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

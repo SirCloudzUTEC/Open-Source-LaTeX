@@ -1,9 +1,11 @@
 import * as pdfjs from "pdfjs-dist";
-import type { PDFDocumentProxy, PDFPageProxy } from "pdfjs-dist";
+import type { PDFDocumentLoadingTask, PDFDocumentProxy, PDFPageProxy } from "pdfjs-dist";
 import workerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 import type { SyncBox } from "./api";
 
 pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
+// Un solo worker para todas las recompilaciones: crear uno por PDF cuesta ~100 ms.
+const sharedWorker = new pdfjs.PDFWorker();
 
 export type ZoomMode = "fit-width" | "fit-page" | number;
 
@@ -22,6 +24,7 @@ interface PageSlot {
  */
 export class PdfViewer {
   private doc: PDFDocumentProxy | null = null;
+  private task: PDFDocumentLoadingTask | null = null;
   private slots: PageSlot[] = [];
   private pagesEl: HTMLDivElement;
   private observer: IntersectionObserver;
@@ -79,9 +82,10 @@ export class PdfViewer {
 
   async load(data: Uint8Array) {
     const token = ++this.loadToken;
-    const doc = await pdfjs.getDocument({ data, isEvalSupported: false }).promise;
+    const task = pdfjs.getDocument({ data, worker: sharedWorker });
+    const doc = await task.promise;
     if (token !== this.loadToken) {
-      void doc.destroy();
+      void task.destroy();
       return;
     }
 
@@ -89,9 +93,13 @@ export class PdfViewer {
     const anchor = this.currentAnchor();
 
     const pages = await Promise.all(Array.from({ length: doc.numPages }, (_, i) => doc.getPage(i + 1)));
-    if (token !== this.loadToken) return;
+    if (token !== this.loadToken || !pages.length) {
+      void task.destroy();
+      return;
+    }
 
-    const oldDoc = this.doc;
+    const oldTask = this.task;
+    this.task = task;
     const oldPagesEl = this.pagesEl;
     this.doc = doc;
     this.scale = this.computeScale(pages[0]);
@@ -109,7 +117,10 @@ export class PdfViewer {
     // Pintamos primero las páginas que quedarán visibles, aún fuera del DOM.
     const visible = this.pagesForAnchor(slots, anchor);
     await Promise.all(visible.map((s) => this.renderSlot(s)));
-    if (token !== this.loadToken) return;
+    if (token !== this.loadToken) {
+      void task.destroy();
+      return;
+    }
 
     this.observer.disconnect();
     this.slots = slots;
@@ -119,14 +130,15 @@ export class PdfViewer {
     for (const s of slots) this.observer.observe(s.el);
     this.attachInverseSync();
     this.reportStatus();
-    if (oldDoc) void oldDoc.destroy();
+    if (oldTask) void oldTask.destroy();
   }
 
   clear() {
     this.loadToken++;
     this.observer.disconnect();
     this.slots = [];
-    void this.doc?.destroy();
+    void this.task?.destroy();
+    this.task = null;
     this.doc = null;
     const el = this.makePagesEl();
     this.pagesEl.replaceWith(el);

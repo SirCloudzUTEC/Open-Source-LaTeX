@@ -94,9 +94,6 @@ function wrapWith(cmd: string) {
 
 export interface EditorHooks {
   onChange: () => void;
-  save: () => void;
-  compile: () => void;
-  syncToPdf: () => void;
 }
 
 export function fontTheme(size: number) {
@@ -111,9 +108,6 @@ export function createExtensions(hooks: EditorHooks, opts: { wrap: boolean; font
   return [
     Prec.highest(
       keymap.of([
-        { key: "Mod-s", run: () => (hooks.save(), true), preventDefault: true },
-        { key: "Mod-Enter", run: () => (hooks.compile(), true), preventDefault: true },
-        { key: "Mod-j", run: () => (hooks.syncToPdf(), true), preventDefault: true },
         { key: "Mod-b", run: wrapWith("textbf") },
         { key: "Mod-i", run: wrapWith("textit") },
         { key: "Mod-u", run: wrapWith("underline") },
